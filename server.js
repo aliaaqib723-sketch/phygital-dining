@@ -10,7 +10,7 @@ import dotenv from 'dotenv';
 // conneting database configuration db.js
 import connectDB from './config/db.js';
 
-// INITIALIZE SYSTEM CONFIGURATIONS
+// INITIALIZE SYSTEM CONFIGURATIONs
 // Tell Dotenv to seek out and load any environment parameters found in our configuration workspace.
 dotenv.config();
 
