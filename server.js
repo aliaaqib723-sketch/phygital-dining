@@ -23,6 +23,9 @@ const app = express();
 // INITIALIZE THE DATABASE INSTANCE db.js
 connectDB();
 
+
+// Body parser middleware (Crucial for reading data from POST/PUT requests)
+app.use(express.json());
 //mounting API gateway
 app.use('/api/menu', menuRoutes);
 
