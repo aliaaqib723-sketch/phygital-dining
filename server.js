@@ -7,14 +7,18 @@
 import express from 'express';
 // Dotenv allows our script to read parameters from a secret hidden system environment file.
 import dotenv from 'dotenv';
+
+// Tell Dotenv to seek out and load any environment parameters found in our configuration workspace.
+// 1. MUST BE INITIALIZED BEFORE ANY CONTROLLER/ROUTE IMPORTS
+dotenv.config();
 // conneting database configuration db.js
 import connectDB from './config/db.js';
 //Mounting Routes into
 import menuRoutes from './routes/menuRoutes.js';
-
+//AI routing module configuration file using unified ES module syntax.
+import aiChatRoutes from './routes/aiChatRoutes.js';
 // INITIALIZE SYSTEM CONFIGURATIONs
-// Tell Dotenv to seek out and load any environment parameters found in our configuration workspace.
-dotenv.config();
+
 
 // INITIALIZE THE SERVER INSTANCE
 // Instantiate the Express system engine. This object represents our active running web server.
@@ -26,8 +30,10 @@ connectDB();
 
 // Body parser middleware (Crucial for reading data from POST/PUT requests)
 app.use(express.json());
-//mounting API gateway
+//mounting menu items API gateway
 app.use('/api/menu', menuRoutes);
+//mounting AI endpoint 
+app.use('/api/chat', aiChatRoutes);
 
 // DEFINE CONSOLE SERVER COMMUNICATION CHANNELS
 // Set the virtual network communication terminal line. Default to local lane 5000 if nothing else is defined.
