@@ -37,6 +37,9 @@ const PORT = process.env.PORT || 5000;
 // Instruct Express to automatically parse incoming text blocks formatted in JSON layout.
 app.use(express.json());
 
+// Expose the static public folder structure to serve frontend views
+app.use(express.static('public'));
+
 // ==========================================
 // CORE ROOT STATUS DIAGNOSTIC LINE
 // ==========================================

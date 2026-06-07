@@ -1,0 +1,190 @@
+/* Core Styling Architecture */
+:root {
+    --primary-color: #1a1a2e;
+    --accent-color: #e94560;
+    --bg-color: #f4f6f9;
+    --card-bg: #ffffff;
+    --text-main: #333333;
+    --text-muted: #666666;
+    --border-radius: 12px;
+    --transition-speed: 0.3s;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.6;
+}
+
+/* Header & Filter Area Layouts */
+.app-header {
+    background: linear-gradient(135deg, var(--primary-color), #162447);
+    color: #ffffff;
+    padding: 40px 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.header-container h1 {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    color: #00fff0;
+    font-size: 1.1rem;
+    font-weight: 300;
+    margin-bottom: 30px;
+}
+
+.filter-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.filter-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 10px 22px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+}
+
+.filter-btn:hover, .filter-btn.active {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Responsive Grid Display Matrix */
+.menu-display-area {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    min-height: 50vh;
+}
+
+.status-message {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 50px;
+}
+
+.menu-grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
+}
+
+/* Individual Dish Display Card Engineering */
+.menu-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+.menu-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+}
+
+.card-details {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.card-top-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.card-top-line h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.dish-price {
+    background-color: #eef2f7;
+    color: var(--accent-color);
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.dish-category {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+}
+
+.dish-description {
+    color: #555555;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+/* Tech Specs and Meta Elements Grid */
+.dish-specs {
+    border-top: 1px dashed #e1e8ed;
+    padding-top: 15px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.spice-level {
+    font-weight: 600;
+}
+
+.spice-hot { color: #d9534f; }
+.spice-mild { color: #f0ad4e; }
+.spice-none { color: #5cb85c; }
+
+/* Footnotes Section */
+.app-footer {
+    text-align: center;
+    padding: 30px;
+    background-color: #11111e;
+    color: #888888;
+    font-size: 0.85rem;
+    margin-top: 60px;
+    border-top: 4px solid var(--accent-color);
+}
