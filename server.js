@@ -11,6 +11,8 @@ import dotenv from 'dotenv';
 // Tell Dotenv to seek out and load any environment parameters found in our configuration workspace.
 // 1. MUST BE INITIALIZED BEFORE ANY CONTROLLER/ROUTE IMPORTS
 dotenv.config();
+
+console.log("DEBUG CHECK - Active API Key loaded is:", process.env.GROQ_API_KEY);
 // conneting database configuration db.js
 import connectDB from './config/db.js';
 //Mounting Routes into
