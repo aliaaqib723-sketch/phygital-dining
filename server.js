@@ -1,57 +1,55 @@
-// ==========================================
-// PHYGITAL DINING CORE SERVER CONFIGURATION
-// ==========================================
+/**
+ * @file server.js
+ * @description Central Application Bootloader and Production Assembly Engine for Phygital Dining.
+ * Fully compliant with strict Express v5 execution rules and native token guardrails.
+ */
 
-// IMPORT SYSTEM ENGINES
-// Express acts as our primary web framework engine to listen for connections.
+// CRITICAL STEP 1: Synchronously evaluate environmental configuration parameters before anything else loads
+import ENVIRONMENT from './config/environment.js';
+
 import express from 'express';
-// Dotenv allows our script to read parameters from a secret hidden system environment file.
-import dotenv from 'dotenv';
+import cors from 'cors';
 
-// Tell Dotenv to seek out and load any environment parameters found in our configuration workspace.
-// 1. MUST BE INITIALIZED BEFORE ANY CONTROLLER/ROUTE IMPORTS
-dotenv.config();
-
-console.log("DEBUG CHECK - Active API Key loaded is:", process.env.GROQ_API_KEY);
-// conneting database configuration db.js
+// IMPORT ARCHITECTURAL PLUGINS & CUSTOM SERVICES
 import connectDB from './config/db.js';
-//Mounting Routes into
 import menuRoutes from './routes/menuRoutes.js';
-//AI routing module configuration file using unified ES module syntax.
-import aiChatRoutes from './routes/aiChatRoutes.js';
-// INITIALIZE SYSTEM CONFIGURATIONs
+import aiChatRoutes from './routes/aiChatRoutes.js'; // Preserved system chat module
 
-
-// INITIALIZE THE SERVER INSTANCE
-// Instantiate the Express system engine. This object represents our active running web server.
+// Instantiate the Express Application server instance
 const app = express();
 
-// INITIALIZE THE DATABASE INSTANCE db.js
-connectDB();
+// INITIALIZE SYSTEM INFRASTRUCTURE LAYER CONNECTIONS
+connectDB(); // Preserved project database bootloader step
 
+// -------------------------------------------------------------------------
+// GLOBAL NETWORK MIDDLEWARE PLATFORM
+// -------------------------------------------------------------------------
 
-// Body parser middleware (Crucial for reading data from POST/PUT requests)
-app.use(express.json());
-//mounting menu items API gateway
-app.use('/api/menu', menuRoutes);
-//mounting AI endpoint 
-app.use('/api/chat', aiChatRoutes);
+// Configure safe Cross-Origin Resource Sharing rules for external Web dashboards
+app.use(cors({
+  origin: '*', 
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// DEFINE CONSOLE SERVER COMMUNICATION CHANNELS
-// Set the virtual network communication terminal line. Default to local lane 5000 if nothing else is defined.
-const PORT = process.env.PORT || 5000;
+// Unified body parsing configurations
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// SYSTEM WORKSPACE MIDDLEWARE DEFINITIONS
-// Instruct Express to automatically parse incoming text blocks formatted in JSON layout.
-app.use(express.json());
-
-// Expose the static public folder structure to serve frontend views
+// Expose static public dashboard assets directory layout to clients
 app.use(express.static('public'));
 
-// ==========================================
-// CORE ROOT STATUS DIAGNOSTIC LINE
-// ==========================================
-// A basic root URL mapping path handler to test our server environment connection locally.
+// -------------------------------------------------------------------------
+// VERSIONED ROUTE TREE MOUNTING GATEWAYS
+// -------------------------------------------------------------------------
+
+// Mounting the structural Menu items API Router
+app.use('/api/menu', menuRoutes);
+
+// Mounting the immersive AI assistant chat tracking system endpoint
+app.use('/api/chat', aiChatRoutes);
+
+// Root Diagnostic Endpoint
 app.get('/', (req, res) => {
   res.status(200).json({
     status: "online",
@@ -60,11 +58,40 @@ app.get('/', (req, res) => {
   });
 });
 
-// START THE SERVER LISTENING PORT PROTOCOL
-// Instruct our Express instance to boot up on our network communication terminal lane.
+// -------------------------------------------------------------------------
+// EXPRESS 5 COMPLIANT UNMAPPED ROUTE CAPTURE LAYER
+// -------------------------------------------------------------------------
+// By using a pathless app.use middleware function instead of string path arguments 
+// like '*' or '(.*)', we completely bypass path-to-regexp string compilation.
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api/')) {
+    return res.status(404).json({
+      success: false,
+      message: `Resource Routing Error: Target destination [${req.originalUrl}] does not exist.`
+    });
+  }
+  next();
+});
+
+// Centralized Express Error Interception Gateway Middleware
+app.use((err, req, res, next) => {
+  console.error('🚨 [CENTRAL SYSTEM FAULT]:', err.stack);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Fatal Internal Server Exception: Operations safely aborted by runtime engine.'
+  });
+});
+
+// -------------------------------------------------------------------------
+// NETWORK SOCKET BOOTSTRAP INITIALIZATION
+// -------------------------------------------------------------------------
+const PORT = ENVIRONMENT.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`=======================================================`);
-  console.log(` PHY-DIGITAL DINING SERVER STARTED SUCCESSFULLY!`);
-  console.log(` ACTIVE AND LISTENING ON LOCAL PORT: http://localhost:${PORT}`);
+  console.log(` 🚀 PHY-DIGITAL DINING CORE APPS ONLINE & VERIFIED`);
+  console.log(` 📡 ROUTE CHANNELS ACTIVE: http://localhost:${PORT}`);
   console.log(`=======================================================`);
 });
+
+export default app; // Facilitates standalone testing metrics without duplicate port binding issues

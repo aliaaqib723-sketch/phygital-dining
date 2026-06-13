@@ -1,25 +1,39 @@
-import { OpenAI } from 'openai';
-import MenuItem from '../models/MenuItem.js'; // Points to your data schema
+/**
+ * @file controllers/aiChatController.js
+ * @description Advanced Conversational Context Broker with State Management.
+ * Integrates live database context queries directly into LLM prompt completion vectors.
+ */
 
-// Keep the session store outside the request handler
+// CRITICAL INTEGRATION STEP: Align variable imports with central environment configuration guards
+import ENVIRONMENT from '../config/environment.js';
+import { OpenAI } from 'openai';
+import MenuItem from '../models/MenuItem.js';
+
+// In-Memory state management array tracking conversation sessions
 const chatSessionsDb = {};
 
-// @desc    Process consumer questions via live database RAG pipeline with session memory
-// @route   POST /api/chat
-export const processChatQuery = async (req, res) => {
+/**
+ * @function processChatQuery
+ * @route   POST /api/chat
+ * @desc    Process consumer questions via live database RAG pipeline with session memory
+ * @access  Public
+ */
+export const processChatQuery = async (req, res, next) => {
     try {
         const { sessionId, userMessage } = req.body;
 
-        // CRITICAL FIX: Instantiate the SDK dynamically inside the request hook 
-        // to ensure it reads the updated process.env variables live on every click.
+        // Instantiate the SDK dynamically inside the request hook using central configuration variables
         const openai = new OpenAI({
-            apiKey: process.env.GROQ_API_KEY,
-            baseURL: process.env.GROQ_BASE_URL
+            apiKey: ENVIRONMENT.GROQ_API_KEY || process.env.GROQ_API_KEY,
+            baseURL: ENVIRONMENT.GROQ_BASE_URL || process.env.GROQ_BASE_URL || "https://api.groq.com/openai/v1"
         });
 
         // FR-2.1: Prevent empty context inputs from executing
         if (!userMessage || !userMessage.trim()) {
-            return res.status(400).json({ success: false, message: "Prompt context cannot be blank." });
+            return res.status(400).json({ 
+                success: false, 
+                message: "Prompt context cannot be blank." 
+            });
         }
 
         // FR-2.2: Establish tracking identifiers for browser contextual sessions
@@ -28,11 +42,11 @@ export const processChatQuery = async (req, res) => {
             chatSessionsDb[activeSessionId] = [];
         }
 
-        // FR-2.3: Extract historical message tokens from memory logs (Keep last 5)
+        // FR-2.3: Extract historical message tokens from memory logs (Keep last 5 logs for stability)
         const historyLogs = chatSessionsDb[activeSessionId].slice(-5);
 
         // FR-2.4: Fetch current item records out of MongoDB Atlas cloud cluster
-        const liveMenuData = await MenuItem.find({ isAvailable: true });
+        const liveMenuData = await MenuItem.find({ isAvailable: true }).sort({ category: 1 });
 
         // Define strict agent personas and context boundaries
         const systemRulePrompt = {
@@ -40,9 +54,10 @@ export const processChatQuery = async (req, res) => {
             content: `You are an elite digital sommelier and intelligent AI Concierge for a high-end restaurant. 
             
             CRITICAL CONSTRAINTS:
-            1. You must ONLY answer questions regarding items, ingredients, pairings, and data found within this live JSON menu database: ${JSON.stringify(liveMenuData)}.
-            2. If the user asks about anything outside of this restaurant, its food, or culinary topics, you must refuse to answer and politely guide them back to our menu.
-            3. Use the provided chat history to remain contextually tracking previous queries.`
+            1. You must ONLY answer questions regarding items, ingredients, pricing, spice levels, allergens, and data found within this live JSON menu database: ${JSON.stringify(liveMenuData)}.
+            2. If the user asks about anything outside of this restaurant, its food, or general knowledge questions unrelated to our menu, you must refuse to answer and politely guide them back to our menu selections.
+            3. Always quote menu item prices in PKR exactly as structured in the data grid.
+            4. Use the provided chat history to remain contextually tracking previous queries.`
         };
 
         // Compile prompt array layout matrix
@@ -73,11 +88,7 @@ export const processChatQuery = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("AI RAG Engine Error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Sorry, I am having trouble connecting to my database layers right now.",
-            error: error.message
-        });
+        // Cascade errors smoothly into the global application error boundary middleware
+        next(error);
     }
 };

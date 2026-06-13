@@ -1,93 +1,184 @@
-//Acts as the brains of that endpoint. When the route hears the request, it passes it to the controller, which communicates with our MenuItem model
+/**
+ * @file controllers/menuController.js
+ * @description Core Operational Controller Matrix for Phygital Menu Records.
+ * Implements high-speed data aggregation grids and satisfies strict validation rules.
+ */
+
 import MenuItem from '../models/MenuItem.js';
 
 /**
- * @desc    Fetch all menu items (Supports optional category filtering)
+ * @function getAllItemsAdmin
+ * @desc    Fetch all dishes from the database cluster formatted for frontend render pipelines
  * @route   GET /api/menu
  * @access  Public
  */
-export const getMenuItems = async (req, res) => {
-  try {
-    let query = {};
+export const getAllItemsAdmin = async (req, res, next) => {
+    try {
+        // Extract optional category matching filter constraints directly from query parameters
+        const { category } = req.query;
+        
+        let filterCriteria = {};
+        
+        // If a specific category filter is passed from the UI buttons, apply it to the query selection
+        if (category && category !== 'All') {
+            filterCriteria.category = category;
+        }
 
-    // Advanced Filtering: If a category query exists (e.g., ?category=Pakistani), filter by it
-    if (req.query.category) {
-      query.category = req.query.category;
+        // Fetch matched menu documents ordered sequentially by identifier
+        const items = await MenuItem.find(filterCriteria).sort({ itemId: 1 });
+
+        // MANDATORY CRITICAL FIX: Match the object signature required by app.js
+        return res.status(200).json({
+            success: true,
+            count: items.length,
+            data: items
+        });
+
+    } catch (error) {
+        // Smoothly pass runtime faults into centralized application error middleware boundaries
+        next(error);
+    }
+};
+
+/**
+ * @route   POST /api/menu
+ * @desc    Authorize and append a fresh spatial dish record into the database cluster
+ * @access  Private (Admin Only)
+ */
+export const createMenuItem = async (req, res, next) => {
+  try {
+    const { name, category, price, description, arModelUrl, spatialTransform } = req.body;
+
+    // MANDATORY CRITICAL ARCHITECTURAL VALIDATION RULE CHECK
+    // If an asset model URL is specified, it MUST terminate with a valid .glb file extension layout
+    if (arModelUrl && !arModelUrl.toLowerCase().endsWith('.glb')) {
+      return res.status(400).json({
+        success: false,
+        message: "Spatial Asset Validation Fault: Target arModelUrl must point to a compiled binary .glb resource."
+      });
     }
 
-    const menu = await MenuItem.find(query);
-    
-    res.status(200).json({
+    const freshItem = await MenuItem.create(req.body);
+
+    return res.status(201).json({
       success: true,
-      count: menu.length,
-      data: menu
+      message: "New spatial menu item committed to database cluster successfully.",
+      data: freshItem
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: `Failed to fetch menu records: ${error.message}`
-    });
+    next(error);
   }
 };
 
 /**
- * @desc    Create a new menu item
- * @route   POST /api/menu
- * @access  Private (Admin/Manager)
+ * @route   PUT /api/menu/:id
+ * @desc    Modify parameters of an existing dish record using its unique MongoDB Hex Object ID
+ * @access  Private (Admin Only)
  */
-export const createMenuItem = async (req, res) => {
+export const updateMenuItem = async (req, res, next) => {
   try {
-    const newItem = await MenuItem.create(req.body);
-    res.status(201).json({
-      success: true,
-      data: newItem
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: `Failed to create item: ${error.message}`
-    });
-  }
-};
+    const targetId = req.params.id;
+    const { arModelUrl } = req.body;
 
-/**
- * @desc    Update an existing menu item by custom itemId
- * @route   PUT /api/menu/:itemId
- * @access  Private (Admin/Manager)
- */
-export const updateMenuItem = async (req, res) => {
-  try {
-    const updatedItem = await MenuItem.findOneAndUpdate(
-      { itemId: req.params.itemId },
+    // RE-ENFORCE CRITICAL ARCHITECTURAL VALIDATION ON ENTRY UPDATE
+    if (arModelUrl && !arModelUrl.toLowerCase().endsWith('.glb')) {
+      return res.status(400).json({
+        success: false,
+        message: "Spatial Asset Validation Fault: Target arModelUrl must point to a compiled binary .glb resource."
+      });
+    }
+
+    const modifiedItem = await MenuItem.findByIdAndUpdate(
+      targetId,
       req.body,
-      { new: true, runValidators: true } // Return updated document and re-run schema validations
+      { new: true, runValidators: true }
     );
 
-    if (!updatedItem) {
-      return res.status(404).json({ success: false, message: "Item ID not found." });
+    if (!modifiedItem) {
+      return res.status(404).json({
+        success: false,
+        message: `Target Operation Exception: Menu entry matching reference [${targetId}] not found.`
+      });
     }
 
-    res.status(200).json({ success: true, data: updatedItem });
+    return res.status(200).json({
+      success: true,
+      message: "Menu entry properties modified successfully.",
+      data: modifiedItem
+    });
   } catch (error) {
-    res.status(400).json({ success: false, message: `Update failed: ${error.message}` });
+    next(error);
   }
 };
 
 /**
- * @desc    Delete a menu item by custom itemId
- * @route   DELETE /api/menu/:itemId
- * @access  Private (Admin/Manager)
+ * @route   PATCH /api/menu/:id/availability
+ * @desc    Execute quick mid-shift availability state mutations (Toggles true/false visibility states)
+ * @access  Private (Staff/Admin)
  */
-export const deleteMenuItem = async (req, res) => {
+export const toggleItemAvailability = async (req, res, next) => {
   try {
-    const deletedItem = await MenuItem.findOneAndDelete({ itemId: req.params.itemId });
+    const targetId = req.params.id;
+    
+    // Find the current live database document entry reference
+    const targetItem = await MenuItem.findById(targetId);
 
-    if (!deletedItem) {
-      return res.status(404).json({ success: false, message: "Item ID not found." });
+    if (!targetItem) {
+      return res.status(404).json({
+        success: false,
+        message: `Target Operation Exception: Menu entry matching reference [${targetId}] not found.`
+      });
     }
 
-    res.status(200).json({ success: true, message: "Menu item successfully purged." });
+    // Atomically invert the current boolean status
+    targetItem.isAvailable = !targetItem.isAvailable;
+    await targetItem.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Operational visibility status modified to [${targetItem.isAvailable}] successfully.`,
+      data: targetItem
+    });
   } catch (error) {
-    res.status(400).json({ success: false, message: `Deletion failed: ${error.message}` });
+    next(error);
+  }
+};
+
+/**
+ * @route   GET /api/menu/analytics
+ * @desc    High-Speed Spatial Dashboard Aggregate Analytics Reporting Matrix
+ * @access  Private (Admin Only)
+ */
+export const getSpatialCommandCenterAnalytics = async (req, res, next) => {
+  try {
+    // Compile category distributions alongside average pricing metrics via Aggregation pipelines
+    const analyticsGrid = await MenuItem.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          totalDishesCount: { $sum: 1 },
+          averagePriceMetric: { $avg: "$price" },
+          minimumPriceBound: { $min: "$price" },
+          maximumPriceBound: { $max: "$price" }
+        }
+      },
+      {
+        $sort: { totalDishesCount: -1 }
+      }
+    ]);
+
+    // Calculate total absolute registered count within the system
+    const globalTotalItemsCount = await MenuItem.countDocuments({});
+
+    return res.status(200).json({
+      success: true,
+      summary: {
+        totalRegisteredItems: globalTotalItemsCount,
+        uniqueActiveCategoriesCount: analyticsGrid.length
+      },
+      matrixGrid: analyticsGrid
+    });
+  } catch (error) {
+    next(error);
   }
 };
