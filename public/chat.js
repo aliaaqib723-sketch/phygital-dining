@@ -118,6 +118,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
+            // Handle rate limiting (429) and server errors (5xx)
+            if (!systemNetworkResponse.ok) {
+                typingIndicator.remove();
+                if (systemNetworkResponse.status === 429) {
+                    appendBubbleMessage("⏱️ I'm receiving too many requests right now. Please try again in a moment.", 'assistant');
+                } else if (systemNetworkResponse.status >= 500) {
+                    appendBubbleMessage("🔧 Server is temporarily unavailable. Please try again shortly.", 'assistant');
+                } else if (systemNetworkResponse.status === 400) {
+                    appendBubbleMessage("❌ Invalid request format. Please try rephrasing your question.", 'assistant');
+                } else {
+                    appendBubbleMessage(`❌ HTTP Error ${systemNetworkResponse.status}. Please try again.`, 'assistant');
+                }
+                return;
+            }
+
             const parsedDataOutput = await systemNetworkResponse.json();
             typingIndicator.remove();
 
@@ -126,12 +141,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('ai_menu_session_id', activeChatSessionId);
                 appendBubbleMessage(parsedDataOutput.answer, 'assistant');
             } else {
-                appendBubbleMessage("Sorry, I am having trouble connecting right now.", 'assistant');
+                appendBubbleMessage(parsedDataOutput.message || "Sorry, I encountered an issue processing your request.", 'assistant');
             }
         } catch (networkError) {
             if (typingIndicator) typingIndicator.remove();
-            console.error(networkError);
-            appendBubbleMessage("Network Interface Timeout encountered.", 'assistant');
+            console.error('Chat error:', networkError);
+            
+            if (networkError instanceof TypeError) {
+                appendBubbleMessage("🌐 Network connection error. Please check your internet connection.", 'assistant');
+            } else {
+                appendBubbleMessage("⚠️ Something went wrong. Please try again.", 'assistant');
+            }
         }
     }
 

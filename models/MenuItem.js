@@ -74,6 +74,20 @@ const MenuItemSchema = new mongoose.Schema({
   isAvailable: {
     type: Boolean,
     default: true
+  },
+  clickCount: {
+    type: Number,
+    default: 0,
+    index: true
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  deletedAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
@@ -105,13 +119,13 @@ MenuItemSchema.statics.calculateNextItemId = async function() {
 /**
  * Pre-Save Lifecycle Hook for Automation
  */
-MenuItemSchema.pre('save', async function(next) {
-  if (!this.isNew) return next();
+MenuItemSchema.pre('save', async function() {
+  if (!this.isNew) return;
   try {
     this.itemId = await mongoose.model('MenuItem').calculateNextItemId();
-    next();
   } catch (error) {
-    next(error);
+    console.error('Error calculating itemId:', error);
+    throw error;
   }
 });
 

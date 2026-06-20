@@ -36,6 +36,19 @@ const validateEnvironmentVariables = () => {
       required: true,
       validator: (val) => val && val.length >= 16,
       errorMessage: 'The JWT_SECRET entropy depth metrics must span a minimum length threshold of 16 characters.'
+    },
+    {
+      key: 'GROQ_API_KEY',
+      required: true,
+      validator: (val) => val && val.length >= 20,
+      errorMessage: 'The GROQ_API_KEY must be a valid API token (minimum 20 characters).'
+    },
+    {
+      key: 'GROQ_BASE_URL',
+      required: false,
+      defaultValue: 'https://api.groq.com/openai/v1',
+      validator: (val) => val && val.startsWith('https://'),
+      errorMessage: 'The GROQ_BASE_URL must be a valid HTTPS endpoint.'
     }
   ];
 

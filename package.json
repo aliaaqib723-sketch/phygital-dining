@@ -1,19 +1,38 @@
 {
   "name": "phygital-dining",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Phygital Dining System - AR-enhanced restaurant experience with AI concierge",
+  "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test:env": "node tests/envTest.js",
+    "test:auth": "node tests/authTest.js",
+    "test:model": "node tests/modelTest.js",
+    "test:controller": "node tests/controllerTest.js",
+    "test:route": "node tests/routeTest.js",
+    "test:log": "node tests/logTest.js",
+    "test:server": "node tests/serverTest.js",
+    "test:api": "node tests/apiTest.js",
+    "test": "node tests/envTest.js && node tests/authTest.js && node tests/modelTest.js && node tests/controllerTest.js",
+    "seed": "node scripts/seedMenu.js"
   },
-  "keywords": [],
+  "keywords": [
+    "restaurant",
+    "phygital",
+    "AR",
+    "dining",
+    "AI"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^7.0.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.3",
     "openai": "^6.42.0"

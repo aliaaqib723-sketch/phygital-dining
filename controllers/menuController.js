@@ -8,7 +8,7 @@ import MenuItem from '../models/MenuItem.js';
 
 /**
  * @function getAllItemsAdmin
- * @desc    Fetch all dishes from the database cluster formatted for frontend render pipelines
+ * @desc    Fetch all ACTIVE dishes from the database cluster formatted for frontend render pipelines
  * @route   GET /api/menu
  * @access  Public
  */
@@ -17,7 +17,7 @@ export const getAllItemsAdmin = async (req, res, next) => {
         // Extract optional category matching filter constraints directly from query parameters
         const { category } = req.query;
         
-        let filterCriteria = {};
+        let filterCriteria = { isAvailable: true, $or: [ { isDeleted: false }, { isDeleted: { $exists: false } } ] }; // CRITICAL FIX: Only show active, non-deleted items
         
         // If a specific category filter is passed from the UI buttons, apply it to the query selection
         if (category && category !== 'All') {
@@ -58,7 +58,13 @@ export const createMenuItem = async (req, res, next) => {
       });
     }
 
-    const freshItem = await MenuItem.create(req.body);
+    // Auto-generate itemId if not provided
+    let itemData = req.body;
+    if (!itemData.itemId) {
+      itemData.itemId = await MenuItem.calculateNextItemId();
+    }
+
+    const freshItem = await MenuItem.create(itemData);
 
     return res.status(201).json({
       success: true,

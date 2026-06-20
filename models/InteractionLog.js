@@ -46,6 +46,11 @@ const interactionLogSchema = new mongoose.Schema({
   deviceMetrics: {
     os: { type: String, trim: true, default: 'Unknown' },
     browser: { type: String, trim: true, default: 'Unknown' }
+  },
+  userMessage: {
+    type: String,
+    trim: true,
+    default: ''
   }
 }, { 
   timestamps: true // Captures real-time interaction log entries chronologically out-of-the-box

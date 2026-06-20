@@ -14,6 +14,8 @@ import cors from 'cors';
 import connectDB from './config/db.js';
 import menuRoutes from './routes/menuRoutes.js';
 import aiChatRoutes from './routes/aiChatRoutes.js'; // Preserved system chat module
+import adminRoutes from './routes/adminRoutes.js'; // Admin dashboard routes
+import rateLimit from 'express-rate-limit';
 
 // Instantiate the Express Application server instance
 const app = express();
@@ -22,14 +24,35 @@ const app = express();
 connectDB(); // Preserved project database bootloader step
 
 // -------------------------------------------------------------------------
+// RATE LIMITING MIDDLEWARE - PREVENTS ABUSE & PROTECTS DATABASE
+// -------------------------------------------------------------------------
+const chatLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 20, // max 20 requests per minute per IP
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // max 100 requests per 15 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// -------------------------------------------------------------------------
 // GLOBAL NETWORK MIDDLEWARE PLATFORM
 // -------------------------------------------------------------------------
 
 // Configure safe Cross-Origin Resource Sharing rules for external Web dashboards
+// Production: Restrict to your domain only
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5000';
 app.use(cors({
-  origin: '*', 
+  origin: corsOrigin, 
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 // Unified body parsing configurations
@@ -43,11 +66,17 @@ app.use(express.static('public'));
 // VERSIONED ROUTE TREE MOUNTING GATEWAYS
 // -------------------------------------------------------------------------
 
+// Apply rate limiting to chat endpoint to protect database
+app.use('/api/chat', chatLimiter);
+
 // Mounting the structural Menu items API Router
-app.use('/api/menu', menuRoutes);
+app.use('/api/menu', generalLimiter, menuRoutes);
 
 // Mounting the immersive AI assistant chat tracking system endpoint
 app.use('/api/chat', aiChatRoutes);
+
+// Mount admin dashboard routes (protected by JWT)
+app.use('/api/admin', adminRoutes);
 
 // Root Diagnostic Endpoint
 app.get('/', (req, res) => {

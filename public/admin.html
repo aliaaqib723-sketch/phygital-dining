@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phygital Dining - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        <div class="w-full max-w-md p-8 bg-white rounded-xl shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <span class="text-white font-bold text-xl">🍽️</span>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900">Dine.Admin</h1>
+                <p class="text-gray-500 text-sm mt-2">Restaurant Management Portal</p>
+            </div>
+
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Admin Username</label>
+                    <input type="text" id="loginUsername" placeholder="admin" required 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <div class="relative">
+                        <input type="password" id="loginPassword" placeholder="••••••••" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent pr-10">
+                        <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer p-1">
+                            <i data-lucide="eye" class="w-5 h-5" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="loginError" class="hidden text-red-600 text-sm bg-red-50 p-3 rounded"></div>
+                <button type="submit" class="w-full py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition">
+                    Login to Dashboard
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- DASHBOARD PAGE -->
+    <div id="dashboardPage" class="hidden min-h-screen bg-gray-50">
+        <!-- Sidebar -->
+        <div class="flex h-screen">
+            <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold">🍽️</span>
+                        </div>
+                        <h1 class="text-xl font-bold text-gray-900">Dine.Admin</h1>
+                    </div>
+                    <p class="text-sm text-gray-600">Restaurant Management</p>
+                </div>
+
+                <nav class="flex-1 p-4 space-y-2">
+                    <button onclick="switchTab('dashboard', event)" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium text-sm text-white bg-red-600 hover:bg-red-700 transition">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                        <span>Dashboard</span>
+                    </button>
+                    <button onclick="switchTab('menu', event)" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium text-sm text-gray-700 hover:bg-gray-100 transition">
+                        <i data-lucide="utensils" class="w-5 h-5"></i>
+                        <span>Menu Management</span>
+                    </button>
+                    <button onclick="switchTab('trash', event)" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium text-sm text-gray-700 hover:bg-gray-100 transition">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        <span>Recycle Bin</span>
+                    </button>
+                    <button onclick="switchTab('analytics', event)" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium text-sm text-gray-700 hover:bg-gray-100 transition">
+                        <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                        <span>Chat Analytics</span>
+                    </button>
+                </nav>
+
+                <div class="p-4 border-t border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold text-gray-700">AD</div>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-900" id="adminUsername">Admin</p>
+                                <p class="text-xs text-green-600 flex items-center"><span class="w-2 h-2 bg-green-600 rounded-full mr-1"></span>Online</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="w-full py-2 text-gray-700 font-medium text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                        Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <!-- Header -->
+                <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+                    <h2 id="pageTitle" class="text-2xl font-bold text-gray-900">Dashboard</h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <p class="text-xs text-gray-500">Session Time</p>
+                            <p class="text-lg font-mono font-semibold text-red-600" id="sessionTimer">15:00</p>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Content Area -->
+                <main class="flex-1 overflow-y-auto p-8 space-y-8">
+
+                    <!-- DASHBOARD TAB -->
+                    <div id="dashboardTab" class="space-y-6">
+                        <!-- Metric Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-600 text-sm font-medium">Total Menu Items</p>
+                                        <p class="text-4xl font-bold text-gray-900 mt-2" id="metricTotal">0</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="list" class="w-6 h-6 text-blue-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-600 text-sm font-medium">Active Items</p>
+                                        <p class="text-4xl font-bold text-green-600 mt-2" id="metricActive">0</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-600 text-sm font-medium">Disabled Items</p>
+                                        <p class="text-4xl font-bold text-red-600 mt-2" id="metricDisabled">0</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="x-circle" class="w-6 h-6 text-red-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Queries Section -->
+                        <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                                <span class="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse-slow"></span>
+                                <i data-lucide="message-circle" class="w-5 h-5 mr-2 text-red-600"></i>
+                                AI Queries from Customers
+                            </h3>
+                            <div id="activityLog" class="space-y-3 max-h-80 overflow-y-auto">
+                                <p class="text-gray-500 text-sm text-center py-8">No AI queries yet</p>
+                            </div>
+                        </div>
+
+                        <!-- Top Ranked Food Items -->
+                        <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                                <i data-lucide="trophy" class="w-5 h-5 mr-2 text-yellow-500"></i>
+                                Top Ranked Food Items
+                            </h3>
+                            <p class="text-xs text-gray-500 mb-4">Ranked by number of customer clicks on the main menu</p>
+                            <div id="topRankedItems" class="space-y-2">
+                                <p class="text-gray-500 text-sm text-center py-8">No click data yet</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MENU MANAGEMENT TAB -->
+                    <div id="menuTab" class="hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-gray-900">Menu Items</h3>
+                            <button onclick="showAddForm()" class="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition flex items-center space-x-2">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                                <span>Add New Item</span>
+                            </button>
+                        </div>
+
+                        <!-- Filter Buttons -->
+                        <div class="flex gap-2">
+                            <button onclick="filterItems('all')" class="filter-btn px-4 py-2 rounded-lg font-medium text-sm bg-red-600 text-white hover:bg-red-700 transition">All</button>
+                            <button onclick="filterItems('active')" class="filter-btn px-4 py-2 rounded-lg font-medium text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 transition">Active Only</button>
+                            <button onclick="filterItems('inactive')" class="filter-btn px-4 py-2 rounded-lg font-medium text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 transition">Inactive Only</button>
+                        </div>
+
+                        <!-- Menu Grid -->
+                        <div id="menuGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <p class="text-gray-500 text-center py-12 col-span-full">Loading menu items...</p>
+                        </div>
+                    </div>
+
+                    <!-- RECYCLE BIN TAB -->
+                    <div id="trashTab" class="hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-gray-900">Recycle Bin</h3>
+                            <button onclick="emptyTrash()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
+                                Empty Trash
+                            </button>
+                        </div>
+                        <div id="trashGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <p class="text-gray-500 text-center py-12 col-span-full">Loading deleted items...</p>
+                        </div>
+                    </div>
+
+                    <!-- ANALYTICS TAB -->
+                    <div id="analyticsTab" class="hidden space-y-6">
+                        <h3 class="text-xl font-bold text-gray-900">Chat Analytics</h3>
+                        <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                            <table class="w-full text-sm">
+                                <thead class="border-b border-gray-200">
+                                    <tr class="text-gray-600 font-semibold">
+                                        <th class="text-left py-3">Session ID</th>
+                                        <th class="text-left py-3">Message</th>
+                                        <th class="text-left py-3">Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analyticsTable" class="divide-y divide-gray-200">
+                                    <tr><td colspan="3" class="text-center py-8 text-gray-500">No chat activity</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT MODAL -->
+    <div id="itemModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 id="modalTitle" class="text-xl font-bold text-gray-900">Add Menu Item</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <form id="itemForm" class="p-6 space-y-4">
+                <input type="hidden" id="itemId">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Item Name *</label>
+                        <input type="text" id="itemName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                        <select id="itemCategory" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600">
+                            <option value="">Select category</option>
+                            <option value="Pakistani">Pakistani</option>
+                            <option value="Italian">Italian</option>
+                            <option value="Fast Food">Fast Food</option>
+                            <option value="Seafood">Seafood</option>
+                            <option value="Appetizers">Appetizers</option>
+                            <option value="Desserts">Desserts</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Price (PKR) *</label>
+                        <input type="number" id="itemPrice" required min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Spice Level (1-5)</label>
+                        <input type="range" id="itemSpice" min="1" max="5" value="1" class="w-full">
+                        <span id="spiceValue" class="text-xs text-gray-600">1/5</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                    <textarea id="itemDescription" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ingredients (comma-separated)</label>
+                        <input type="text" id="itemIngredients" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600" placeholder="e.g., Chicken, Rice, Spices">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Allergens (comma-separated)</label>
+                        <input type="text" id="itemAllergens" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600" placeholder="e.g., Dairy, Gluten">
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition">Save Item</button>
+                    <button type="button" onclick="closeModal()" class="flex-1 py-2 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        let authToken = localStorage.getItem('adminToken');
+        let currentFilter = 'all';
+        let passwordVisible = false;
+
+        // PASSWORD TOGGLE FUNCTIONALITY
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        if (togglePasswordBtn) {
+            togglePasswordBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const passwordInput = document.getElementById('loginPassword');
+                const eyeIcon = document.getElementById('eyeIcon');
+                if (passwordVisible) {
+                    passwordInput.type = 'password';
+                    eyeIcon.setAttribute('data-lucide', 'eye');
+                    passwordVisible = false;
+                } else {
+                    passwordInput.type = 'text';
+                    eyeIcon.setAttribute('data-lucide', 'eye-off');
+                    passwordVisible = true;
+                }
+                lucide.createIcons();
+            });
+        }
+
+        // LOGIN FORM SUBMISSION
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value.trim();
+            const err = document.getElementById('loginError');
+            
+            if (!u || !p) {
+                err.textContent = 'Please enter both username and password';
+                err.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                const r = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                const d = await r.json();
+                
+                if (d.success) {
+                    localStorage.setItem('adminToken', d.token);
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('dashboardPage').classList.remove('hidden');
+                    authToken = d.token;
+                    document.getElementById('adminUsername').textContent = u;
+                    initDashboard();
+                } else {
+                    err.textContent = d.message;
+                    err.classList.remove('hidden');
+                }
+            } catch (e) {
+                err.textContent = 'Connection error';
+                err.classList.remove('hidden');
+            }
+        });
+
+        // Check if already logged in
+        window.addEventListener('load', () => {
+            authToken = localStorage.getItem('adminToken'); // FIX: Always re-read from storage on load
+            if (authToken) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('dashboardPage').classList.remove('hidden');
+                initDashboard();
+            }
+        });
+
+        // DASHBOARD INITIALIZATION
+        function initDashboard() {
+            startSessionTimer();
+            loadDashboardData();
+            setInterval(loadDashboardData, 5000); // Refresh every 5 seconds
+        }
+
+        function startSessionTimer() {
+            let timeLeft = 8 * 60 * 60; // 8 hours
+            setInterval(() => {
+                timeLeft--;
+                const hours = Math.floor(timeLeft / 3600);
+                const mins = Math.floor((timeLeft % 3600) / 60);
+                const secs = timeLeft % 60;
+                document.getElementById('sessionTimer').textContent = 
+                    `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        async function loadDashboardData() {
+            const token = authToken || localStorage.getItem('adminToken');
+            try {
+                const res = await fetch('/api/admin/menu', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API returned status ${res.status}`);
+                }
+                
+                const data = await res.json();
+
+                if (!data.success) {
+                    if (res.status === 401) logout();
+                    return;
+                }
+
+                const items = data.data;
+                const active = items.filter(i => i.isAvailable).length;
+                const disabled = items.filter(i => !i.isAvailable).length;
+
+                document.getElementById('metricTotal').textContent = items.length;
+                document.getElementById('metricActive').textContent = active;
+                document.getElementById('metricDisabled').textContent = disabled;
+
+                // Load AI queries
+                const chatRes = await fetch('/api/admin/chat-queries', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (chatRes.ok) {
+                    const chatData = await chatRes.json();
+                    if (chatData.success) {
+                        renderAIQueries(chatData.data);
+                    }
+                }
+
+                // Load top ranked items
+                const analyticsRes = await fetch('/api/admin/analytics', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (analyticsRes.ok) {
+                    const analyticsData = await analyticsRes.json();
+                    if (analyticsData.success) {
+                        renderTopRankedItems(analyticsData.analytics.topRankedItems);
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading dashboard:', err);
+            }
+        }
+
+        function renderAIQueries(queries) {
+            const container = document.getElementById('activityLog');
+            if (!queries || queries.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">No AI queries yet</p>';
+                return;
+            }
+            container.innerHTML = queries.slice(0, 15).map(q => `
+                <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm flex items-start gap-3">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="message-circle" class="w-4 h-4 text-red-600"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-gray-900 truncate">${q.userMessage || 'No message'}</p>
+                        <p class="text-gray-500 text-xs mt-1">${new Date(q.createdAt).toLocaleString()} · Session: ${(q.sessionId || '').substring(0, 12)}...</p>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function renderTopRankedItems(items) {
+            const container = document.getElementById('topRankedItems');
+            if (!items || items.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">No click data yet</p>';
+                return;
+            }
+            const ranked = items.filter(i => (i.clickCount || 0) > 0);
+            if (ranked.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">No clicks recorded yet. Customers need to click food items on the main menu.</p>';
+                return;
+            }
+            container.innerHTML = ranked.map((item, idx) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const medal = idx < 3 ? medals[idx] : `#${idx + 1}`;
+                const barWidth = ranked[0].clickCount > 0 ? Math.max(8, (item.clickCount / ranked[0].clickCount) * 100) : 0;
+                return `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition">
+                        <span class="text-xl w-8 text-center flex-shrink-0">${medal}</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-1">
+                                <p class="font-semibold text-gray-900 truncate">${item.name}</p>
+                                <span class="text-xs font-bold text-red-600 ml-2 flex-shrink-0">${item.clickCount} clicks</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-gradient-to-r from-red-500 to-red-600 h-1.5 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">${item.category} · Rs. ${item.price}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // NAVIGATION
+        function switchTab(tab, event) {
+            document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tab + 'Tab').classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-red-600', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            // FIX: Use the passed event parameter instead of the implicit global event object
+            const clickedBtn = event && event.target ? event.target.closest('.tab-btn') : null;
+            if (clickedBtn) {
+                clickedBtn.classList.add('bg-red-600', 'text-white');
+                clickedBtn.classList.remove('bg-gray-100', 'text-gray-700');
+            }
+
+            const titles = { dashboard: 'Dashboard', menu: 'Menu Management', trash: 'Recycle Bin', analytics: 'Chat Analytics' };
+            document.getElementById('pageTitle').textContent = titles[tab];
+
+            if (tab === 'menu') loadMenuItems();
+            if (tab === 'trash') loadTrashItems();
+            if (tab === 'analytics') loadAnalytics();
+        }
+
+        // MENU MANAGEMENT
+        async function loadMenuItems() {
+            try {
+                const res = await fetch('/api/admin/menu', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API returned status ${res.status}`);
+                }
+                
+                const data = await res.json();
+                if (data.success) {
+                    renderMenuGrid(data.data);
+                }
+            } catch (err) {
+                console.error('Error loading menu:', err);
+                document.getElementById('menuGrid').innerHTML = '<p class="text-red-600 text-center col-span-full">Error loading menu items</p>';
+            }
+        }
+
+        function renderMenuGrid(items) {
+            let filtered = items;
+            if (currentFilter === 'active') filtered = items.filter(i => i.isAvailable);
+            if (currentFilter === 'inactive') filtered = items.filter(i => !i.isAvailable);
+
+            const grid = document.getElementById('menuGrid');
+            if (filtered.length === 0) {
+                grid.innerHTML = '<p class="text-gray-500 col-span-full text-center py-12">No items found</p>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(item => `
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 class="font-bold text-gray-900">${item.name}</h4>
+                            <p class="text-xs text-gray-500">${item.category}</p>
+                        </div>
+                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">Rs. ${item.price}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3 line-clamp-2">${item.description}</p>
+                    <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                        <span>Spice: ${item.spiceLevel}/5</span>
+                        <span class="${item.isAvailable ? 'text-green-600' : 'text-red-600'} font-semibold">
+                            ${item.isAvailable ? '🟢 Active' : '🔴 Inactive'}
+                        </span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editItem('${item._id}')" class="flex-1 py-2 bg-blue-100 text-blue-700 font-medium text-sm rounded hover:bg-blue-200 transition">Edit</button>
+                        <button onclick="toggleStatus('${item._id}', ${item.isAvailable})" class="flex-1 py-2 ${item.isAvailable ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'} font-medium text-sm rounded hover:opacity-80 transition">
+                            ${item.isAvailable ? 'Disable' : 'Enable'}
+                        </button>
+                        <button onclick="deleteItem('${item._id}')" class="flex-1 py-2 bg-red-100 text-red-700 font-medium text-sm rounded hover:bg-red-200 transition">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterItems(filter) {
+            currentFilter = filter;
+            loadMenuItems();
+        }
+
+        function showAddForm() {
+            document.getElementById('itemId').value = '';
+            document.getElementById('modalTitle').textContent = 'Add Menu Item';
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemSpice').value = 1;
+            document.getElementById('spiceValue').textContent = '1/5';
+            document.getElementById('itemModal').classList.remove('hidden');
+        }
+
+        async function editItem(id) {
+            try {
+                const res = await fetch(`/api/admin/menu`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await res.json();
+                const item = data.data.find(i => i._id === id);
+
+                if (item) {
+                    document.getElementById('itemId').value = item._id;
+                    document.getElementById('itemName').value = item.name;
+                    document.getElementById('itemCategory').value = item.category;
+                    document.getElementById('itemPrice').value = item.price;
+                    document.getElementById('itemSpice').value = item.spiceLevel || 1;
+                    document.getElementById('spiceValue').textContent = (item.spiceLevel || 1) + '/5';
+                    document.getElementById('itemDescription').value = item.description;
+                    document.getElementById('itemIngredients').value = item.ingredients ? item.ingredients.join(', ') : '';
+                    document.getElementById('itemAllergens').value = item.allergens ? item.allergens.join(', ') : '';
+                    document.getElementById('modalTitle').textContent = 'Edit Menu Item';
+                    document.getElementById('itemModal').classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error('Error loading item:', err);
+            }
+        }
+
+        document.getElementById('itemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('itemId').value;
+            
+            // Parse ingredients and allergens properly - handle both array and string formats
+            const ingredientsInput = document.getElementById('itemIngredients').value;
+            const allergensInput = document.getElementById('itemAllergens').value;
+            
+            const ingredients = ingredientsInput 
+                ? ingredientsInput.split(',').map(i => i.trim()).filter(i => i)
+                : [];
+            const allergens = allergensInput
+                ? allergensInput.split(',').map(a => a.trim()).filter(a => a)
+                : [];
+            
+            const payload = {
+                name: document.getElementById('itemName').value,
+                category: document.getElementById('itemCategory').value,
+                price: parseFloat(document.getElementById('itemPrice').value),
+                spiceLevel: parseInt(document.getElementById('itemSpice').value),
+                description: document.getElementById('itemDescription').value,
+                ingredients: ingredients,
+                allergens: allergens
+            };
+
+            try {
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `/api/admin/menu/${id}` : '/api/admin/menu';
+                const res = await fetch(url, {
+                    method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API returned status ${res.status}`);
+                }
+                
+                const data = await res.json();
+
+                if (data.success) {
+                    alert(id ? 'Item updated successfully!' : 'Item added successfully!');
+                    closeModal();
+                    loadMenuItems();
+                    loadDashboardData();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (err) {
+                console.error('Form submission error:', err);
+                alert('Error saving item: ' + err.message);
+            }
+        });
+
+        async function toggleStatus(id, currentStatus) {
+            try {
+                const res = await fetch(`/api/admin/menu/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ isAvailable: !currentStatus })
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API returned status ${res.status}`);
+                }
+                
+                const data = await res.json();
+                if (data.success) {
+                    loadMenuItems();
+                    loadDashboardData();
+                } else {
+                    alert('Status update failed: ' + data.message);
+                }
+            } catch (err) {
+                console.error('Toggle status error:', err);
+                alert('Error updating item status: ' + err.message);
+            }
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('Are you sure you want to delete this item?')) return;
+            const token = authToken || localStorage.getItem('adminToken');
+            try {
+                const res = await fetch(`/api/admin/menu/${id}`, {
+                    method: 'DELETE',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API returned status ${res.status}`);
+                }
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('Item moved to recycle bin');
+                    loadMenuItems();
+                    loadDashboardData();
+                } else {
+                    alert('Delete failed: ' + data.message);
+                }
+            } catch (err) {
+                console.error('Delete error:', err);
+                alert('Error deleting item: ' + err.message);
+            }
+        }
+
+        // RECYCLE BIN MANAGEMENT
+        async function loadTrashItems() {
+            try {
+                const res = await fetch('/api/admin/trash', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API returned status ${res.status}`);
+                }
+                
+                const data = await res.json();
+                if (data.success) {
+                    renderTrashGrid(data.data);
+                }
+            } catch (err) {
+                console.error('Error loading trash:', err);
+                document.getElementById('trashGrid').innerHTML = '<p class="text-red-600 text-center col-span-full">Error loading trash</p>';
+            }
+        }
+
+        function renderTrashGrid(items) {
+            const grid = document.getElementById('trashGrid');
+            if (items.length === 0) {
+                grid.innerHTML = '<p class="text-gray-500 text-center py-12 col-span-full">Recycle bin is empty</p>';
+                return;
+            }
+            grid.innerHTML = items.map(item => `
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold text-gray-900">${item.name}</h4>
+                        <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Deleted</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">${item.category}</p>
+                    <p class="text-sm text-gray-500 mb-3">$${item.price.toFixed(2)}</p>
+                    <p class="text-xs text-gray-400 mb-3">Deleted: ${new Date(item.deletedAt).toLocaleString()}</p>
+                    <div class="flex gap-2">
+                        <button onclick="restoreItem('${item._id}')" class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">
+                            Restore
+                        </button>
+                        <button onclick="permanentlyDeleteItem('${item._id}')" class="flex-1 px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition">
+                            Delete Forever
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function restoreItem(id) {
+            if (!confirm('Restore this item to the menu?')) return;
+            try {
+                const res = await fetch(`/api/admin/trash/${id}/restore`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API returned status ${res.status}`);
+                }
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('Item restored successfully!');
+                    loadTrashItems();
+                    loadMenuItems();
+                    loadDashboardData();
+                } else {
+                    alert('Restore failed: ' + data.message);
+                }
+            } catch (err) {
+                console.error('Restore error:', err);
+                alert('Error restoring item: ' + err.message);
+            }
+        }
+
+        async function permanentlyDeleteItem(id) {
+            if (!confirm('This will permanently delete the item. This action cannot be undone!')) return;
+            try {
+                const res = await fetch(`/api/admin/menu/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ permanent: true })
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API returned status ${res.status}`);
+                }
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('Item permanently deleted!');
+                    loadTrashItems();
+                    loadDashboardData();
+                } else {
+                    alert('Delete failed: ' + data.message);
+                }
+            } catch (err) {
+                console.error('Permanent delete error:', err);
+                alert('Error deleting item: ' + err.message);
+            }
+        }
+
+        async function emptyTrash() {
+            if (!confirm('This will permanently delete ALL items in the recycle bin. This cannot be undone!')) return;
+            try {
+                const res = await fetch('/api/admin/trash', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API returned status ${res.status}`);
+                }
+                
+                const data = await res.json();
+                if (data.success && data.data) {
+                    // Delete each item permanently
+                    for (let item of data.data) {
+                        const deleteRes = await fetch(`/api/admin/menu/${item._id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ permanent: true })
+                        });
+                        if (!deleteRes.ok) {
+                            console.error(`Failed to delete item ${item._id}`);
+                        }
+                    }
+                    alert('Trash emptied successfully!');
+                    loadTrashItems();
+                    loadDashboardData();
+                }
+            } catch (err) {
+                console.error('Empty trash error:', err);
+                alert('Error emptying trash: ' + err.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').classList.add('hidden');
+        }
+
+        async function loadAnalytics() {
+            try {
+                const res = await fetch('/api/admin/analytics', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API returned status ${res.status}`);
+                }
+                
+                const data = await res.json();
+                if (data.success) {
+                    const table = document.getElementById('analyticsTable');
+                    const interactions = data.analytics.recentInteractions || [];
+                    table.innerHTML = interactions.length === 0 ? 
+                        '<tr><td colspan="3" class="text-center py-8 text-gray-500">No activity yet</td></tr>' :
+                        interactions.map(i => `
+                            <tr>
+                                <td class="py-3 font-mono text-xs">${i.sessionId}</td>
+                                <td>${i.interactionType}</td>
+                                <td class="text-right text-gray-500 text-xs">${new Date(i.createdAt).toLocaleString()}</td>
+                            </tr>
+                        `).join('');
+                }
+            } catch (err) {
+                console.error('Error loading analytics:', err);
+            }
+        }
+
+        document.getElementById('itemSpice').addEventListener('change', (e) => {
+            document.getElementById('spiceValue').textContent = e.target.value + '/5';
+        });
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            authToken = null;
+            document.getElementById('dashboardPage').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+        }
+    </script>
+</body>
+</html>
